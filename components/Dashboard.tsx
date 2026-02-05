@@ -146,7 +146,7 @@ const Dashboard: React.FC<DashboardProps> = ({ products, transactions, opnameSes
         </div>
 
         <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-          <h3 className="font-bold text-slate-900 mb-6">Recent Activities</h3>
+          <h3 className="font-bold text-slate-900 mb-6">Recent Activities CONTOH</h3>
           <div className="space-y-6">
             {transactions.slice(0, 5).map(tx => (
               <div key={tx.id} className="flex gap-4">
