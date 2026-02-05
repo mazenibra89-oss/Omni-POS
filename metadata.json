@@ -1,0 +1,8 @@
+
+{
+  "name": "OmniPOS - Enterprise Stock & Sales Management",
+  "description": "A comprehensive Point of Sale system with specialized Stock Opname modules, real-time inventory tracking, and multi-role access control.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
