@@ -25,12 +25,21 @@ const QRCodeComponent = (props: any) => {
   return <QRCodeCanvas {...props} />;
 };
 
+// Default produk dummy jika tidak ada props
+const defaultProducts: Product[] = [
+  { id: '1', sku: 'SKU-1', name: 'Nasi Goreng', category: 'Makanan', unit: 'Porsi', sellPrice: 20000, stock: 99, minStock: 5, buyPrice: 15000 },
+  { id: '2', sku: 'SKU-2', name: 'Es Teh', category: 'Minuman', unit: 'Gelas', sellPrice: 5000, stock: 99, minStock: 10, buyPrice: 3000 },
+];
+
 interface CustomerViewProps {
   products: Product[];
   onOrderComplete: (tx: Transaction) => void;
 }
 
-const CustomerView: React.FC<CustomerViewProps> = ({ products, onOrderComplete }) => {
+const CustomerView: React.FC<Partial<CustomerViewProps>> = (props) => {
+  const products = props.products || defaultProducts;
+  const onOrderComplete = props.onOrderComplete || (() => {});
+
   const [activeCategory, setActiveCategory] = useState('All');
   const [searchTerm, setSearchTerm] = useState('');
   const [cart, setCart] = useState<TransactionItem[]>([]);

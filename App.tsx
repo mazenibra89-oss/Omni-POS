@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useEffect } from 'react';
 import { 
   LayoutDashboard, 
@@ -29,14 +28,13 @@ import Reports from './components/Reports';
 import UserManagement from './components/UserManagement';
 import Purchasing from './components/Purchasing';
 import CustomerView from './components/CustomerView';
+import LoginPage from './components/LoginPage';
 
 const App: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'pos' | 'inventory' | 'opname' | 'reports' | 'users' | 'purchasing'>('dashboard');
-  const [currentUser, setCurrentUser] = useState<{ id: string; name: string; role: UserRole }>({
-    id: 'U001',
-    name: 'Admin Utama',
-    role: UserRole.ADMIN
-  });
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'pos' | 'inventory' | 'opname' | 'reports' | 'users' | 'purchasing' | 'customer'>('dashboard');
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [loginUser, setLoginUser] = useState<{ username: string; role: UserRole } | null>(null);
+  const [currentUser, setCurrentUser] = useState<{ id: string; name: string; role: UserRole } | null>(null);
   
   // Application State
   const [products, setProducts] = useState<Product[]>(INITIAL_PRODUCTS);
@@ -101,7 +99,7 @@ const App: React.FC = () => {
   };
 
   const SidebarItem = ({ id, label, icon: Icon, roles }: { id: any, label: string, icon: any, roles: UserRole[] }) => {
-    if (!roles.includes(currentUser.role)) return null;
+    if (!roles.includes(currentUser!.role)) return null;
     const isActive = activeTab === id;
     return (
       <button
@@ -119,24 +117,34 @@ const App: React.FC = () => {
     );
   };
 
-  // IF CUSTOMER ROLE: Render specific customer experience
+  // Handler login
+  const handleLogin = (user: { username: string; role: UserRole }) => {
+    setIsLoggedIn(true);
+    setLoginUser(user);
+    setCurrentUser({ id: user.username, name: user.username, role: user.role });
+    // Redirect tab sesuai role
+    if (user.role === UserRole.CASHIER) setActiveTab('pos');
+    else if (user.role === UserRole.OWNER) setActiveTab('dashboard');
+    else if (user.role === UserRole.ADMIN) setActiveTab('dashboard');
+    else if (user.role === UserRole.CUSTOMER) setActiveTab('customer');
+  };
+
+  // Handler logout
+  const handleLogout = () => {
+    setIsLoggedIn(false);
+    setLoginUser(null);
+    setCurrentUser(null);
+    localStorage.removeItem('accessToken');
+  };
+
+  // Render login page jika belum login
+  if (!isLoggedIn || !currentUser) {
+    return <LoginPage onLogin={handleLogin} />;
+  }
+
+  // Jika customer, tampilkan CustomerView full screen tanpa sidebar/header
   if (currentUser.role === UserRole.CUSTOMER) {
-    return (
-      <div className="h-screen bg-slate-50 flex flex-col">
-        {/* Simple Switcher for Demo */}
-        <div className="fixed top-2 right-2 z-50 opacity-20 hover:opacity-100">
-           <select 
-              className="text-xs border border-slate-200 rounded px-1 py-1"
-              value={currentUser.role}
-              onChange={(e) => setCurrentUser(prev => ({ ...prev, role: e.target.value as UserRole }))}
-            >
-              <option value={UserRole.ADMIN}>Admin</option>
-              <option value={UserRole.CUSTOMER}>Customer POV</option>
-            </select>
-        </div>
-        <CustomerView products={products} onOrderComplete={handleAddTransaction} />
-      </div>
-    );
+    return <CustomerView />;
   }
 
   return (
@@ -156,16 +164,16 @@ const App: React.FC = () => {
 
         <nav className="flex-1 px-3 space-y-1 mt-4 overflow-y-auto no-scrollbar">
           <SidebarItem id="dashboard" label="Dashboard" icon={LayoutDashboard} roles={[UserRole.ADMIN, UserRole.OWNER, UserRole.CASHIER]} />
-          <SidebarItem id="pos" label="Penjualan (POS)" icon={ShoppingCart} roles={[UserRole.ADMIN, UserRole.CASHIER]} />
+          <SidebarItem id="pos" label="Penjualan (POS)" icon={ShoppingCart} roles={[UserRole.ADMIN, UserRole.OWNER, UserRole.CASHIER]} />
           <SidebarItem id="purchasing" label="Purchasing" icon={Truck} roles={[UserRole.ADMIN, UserRole.OWNER]} />
           <SidebarItem id="inventory" label="Inventory" icon={Package} roles={[UserRole.ADMIN, UserRole.OWNER]} />
           <SidebarItem id="opname" label="Stock Opname" icon={ClipboardCheck} roles={[UserRole.ADMIN, UserRole.OWNER]} />
           <SidebarItem id="reports" label="Laporan" icon={BarChart3} roles={[UserRole.ADMIN, UserRole.OWNER]} />
-          <SidebarItem id="users" label="User Access" icon={Users} roles={[UserRole.ADMIN]} />
+          <SidebarItem id="users" label="User Access" icon={Users} roles={[UserRole.OWNER]} />
         </nav>
 
         <div className="p-4 border-t border-slate-100">
-          <button className="w-full flex items-center gap-3 px-4 py-3 text-slate-500 hover:bg-red-50 hover:text-red-600 rounded-xl transition-colors">
+          <button className="w-full flex items-center gap-3 px-4 py-3 text-slate-500 hover:bg-red-50 hover:text-red-600 rounded-xl transition-colors" onClick={handleLogout}>
             <LogOut size={20} />
             {isSidebarOpen && <span className="font-medium">Sign Out</span>}
           </button>
@@ -191,23 +199,13 @@ const App: React.FC = () => {
             <div className="h-8 w-[1px] bg-slate-200 mx-2"></div>
             <div className="flex items-center gap-3">
               <div className="text-right hidden sm:block">
-                <p className="text-sm font-semibold text-slate-900">{currentUser.name}</p>
-                <p className="text-xs text-slate-500 font-medium">{currentUser.role}</p>
+                <p className="text-sm font-semibold text-slate-900">{currentUser!.name}</p>
+                <p className="text-xs text-slate-500 font-medium">{currentUser!.role === UserRole.OWNER ? 'Owner' : currentUser!.role === UserRole.ADMIN ? 'Admin' : currentUser!.role}</p>
               </div>
               <div className="w-10 h-10 bg-slate-200 rounded-xl flex items-center justify-center text-slate-600">
                 <UserCircle size={28} />
               </div>
             </div>
-            <select 
-              className="ml-2 text-xs border border-slate-200 rounded px-1 py-1"
-              value={currentUser.role}
-              onChange={(e) => setCurrentUser(prev => ({ ...prev, role: e.target.value as UserRole }))}
-            >
-              <option value={UserRole.ADMIN}>Admin</option>
-              <option value={UserRole.CASHIER}>Cashier</option>
-              <option value={UserRole.OWNER}>Owner</option>
-              <option value={UserRole.CUSTOMER}>Customer POV</option>
-            </select>
           </div>
         </header>
 
@@ -216,9 +214,10 @@ const App: React.FC = () => {
           {activeTab === 'pos' && <POS products={products} onTransactionComplete={handleAddTransaction} />}
           {activeTab === 'purchasing' && <Purchasing products={products} purchases={purchases} onAddPurchase={handleAddPurchase} />}
           {activeTab === 'inventory' && <Inventory products={products} setProducts={setProducts} />}
-          {activeTab === 'opname' && <StockOpname products={products} sessions={opnameSessions} onUpdateSession={handleOpnameUpdate} userRole={currentUser.role} />}
+          {activeTab === 'opname' && <StockOpname products={products} sessions={opnameSessions} onUpdateSession={handleOpnameUpdate} userRole={currentUser!.role} />}
           {activeTab === 'reports' && <Reports transactions={transactions} products={products} />}
-          {activeTab === 'users' && <UserManagement />}
+          {activeTab === 'users' && <UserManagement currentUserRole={currentUser!.role} />}
+          {activeTab === 'customer' && <CustomerView />}
         </div>
       </main>
     </div>
