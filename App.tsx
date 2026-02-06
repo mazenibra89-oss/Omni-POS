@@ -31,17 +31,19 @@ import CustomerView from './components/CustomerView';
 import LoginPage from './components/LoginPage';
 
 const App: React.FC = () => {
+  // Pindahkan semua useState ke atas
   const [activeTab, setActiveTab] = useState<'dashboard' | 'pos' | 'inventory' | 'opname' | 'reports' | 'users' | 'purchasing' | 'customer'>('dashboard');
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [loginUser, setLoginUser] = useState<{ username: string; role: UserRole } | null>(null);
   const [currentUser, setCurrentUser] = useState<{ id: string; name: string; role: UserRole } | null>(null);
-  
-  // Application State
   const [products, setProducts] = useState<Product[]>(INITIAL_PRODUCTS);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [purchases, setPurchases] = useState<PurchaseOrder[]>([]);
   const [opnameSessions, setOpnameSessions] = useState<OpnameSession[]>([]);
   const [isSidebarOpen, setSidebarOpen] = useState(true);
+  // Tambahkan ini ke atas
+  const [isMobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
 
   // Derived Alerts
   const lowStockCount = useMemo(() => 
@@ -147,43 +149,61 @@ const App: React.FC = () => {
     return <CustomerView />;
   }
 
-  return (
-    <div className="flex h-screen overflow-hidden bg-slate-50">
-      <aside className={`bg-white border-r border-slate-200 transition-all duration-300 flex flex-col ${isSidebarOpen ? 'w-64' : 'w-20'}`}>
-        <div className="p-6 flex items-center gap-3">
-          <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white shrink-0">
-            <LayoutDashboard size={24} />
+  // Sidebar component
+  const Sidebar = (
+    <aside className={`bg-white border-r border-slate-200 transition-all duration-300 flex flex-col h-full z-50
+      fixed top-0 left-0 w-64 md:static md:w-64
+      ${isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0
+      shadow-2xl md:shadow-none
+    `}>
+      <div className="p-6 flex items-center gap-3">
+        <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white shrink-0">
+          <LayoutDashboard size={24} />
+        </div>
+        {isSidebarOpen && (
+          <div className="overflow-hidden">
+            <h1 className="font-bold text-lg leading-none truncate">OmniPOS</h1>
+            <p className="text-xs text-slate-400 mt-1">Enterprise Solution</p>
           </div>
-          {isSidebarOpen && (
-            <div className="overflow-hidden">
-              <h1 className="font-bold text-lg leading-none truncate">OmniPOS</h1>
-              <p className="text-xs text-slate-400 mt-1">Enterprise Solution</p>
-            </div>
-          )}
-        </div>
+        )}
+      </div>
+      <nav className="flex-1 px-3 space-y-1 mt-4 overflow-y-auto no-scrollbar">
+        <SidebarItem id="dashboard" label="Dashboard" icon={LayoutDashboard} roles={[UserRole.ADMIN, UserRole.OWNER, UserRole.CASHIER]} />
+        <SidebarItem id="pos" label="Penjualan (POS)" icon={ShoppingCart} roles={[UserRole.ADMIN, UserRole.OWNER, UserRole.CASHIER]} />
+        <SidebarItem id="purchasing" label="Purchasing" icon={Truck} roles={[UserRole.ADMIN, UserRole.OWNER]} />
+        <SidebarItem id="inventory" label="Inventory" icon={Package} roles={[UserRole.ADMIN, UserRole.OWNER]} />
+        <SidebarItem id="opname" label="Stock Opname" icon={ClipboardCheck} roles={[UserRole.ADMIN, UserRole.OWNER]} />
+        <SidebarItem id="reports" label="Laporan" icon={BarChart3} roles={[UserRole.ADMIN, UserRole.OWNER]} />
+        <SidebarItem id="users" label="User Access" icon={Users} roles={[UserRole.OWNER]} />
+      </nav>
+      <div className="p-4 border-t border-slate-100">
+        <button className="w-full flex items-center gap-3 px-4 py-3 text-slate-500 hover:bg-red-50 hover:text-red-600 rounded-xl transition-colors" onClick={handleLogout}>
+          <LogOut size={20} />
+          {isSidebarOpen && <span className="font-medium">Sign Out</span>}
+        </button>
+      </div>
+    </aside>
+  );
 
-        <nav className="flex-1 px-3 space-y-1 mt-4 overflow-y-auto no-scrollbar">
-          <SidebarItem id="dashboard" label="Dashboard" icon={LayoutDashboard} roles={[UserRole.ADMIN, UserRole.OWNER, UserRole.CASHIER]} />
-          <SidebarItem id="pos" label="Penjualan (POS)" icon={ShoppingCart} roles={[UserRole.ADMIN, UserRole.OWNER, UserRole.CASHIER]} />
-          <SidebarItem id="purchasing" label="Purchasing" icon={Truck} roles={[UserRole.ADMIN, UserRole.OWNER]} />
-          <SidebarItem id="inventory" label="Inventory" icon={Package} roles={[UserRole.ADMIN, UserRole.OWNER]} />
-          <SidebarItem id="opname" label="Stock Opname" icon={ClipboardCheck} roles={[UserRole.ADMIN, UserRole.OWNER]} />
-          <SidebarItem id="reports" label="Laporan" icon={BarChart3} roles={[UserRole.ADMIN, UserRole.OWNER]} />
-          <SidebarItem id="users" label="User Access" icon={Users} roles={[UserRole.OWNER]} />
-        </nav>
-
-        <div className="p-4 border-t border-slate-100">
-          <button className="w-full flex items-center gap-3 px-4 py-3 text-slate-500 hover:bg-red-50 hover:text-red-600 rounded-xl transition-colors" onClick={handleLogout}>
-            <LogOut size={20} />
-            {isSidebarOpen && <span className="font-medium">Sign Out</span>}
-          </button>
-        </div>
-      </aside>
-
+  return (
+    <div className="flex h-screen overflow-hidden bg-slate-50 relative">
+      {/* Backdrop mobile sidebar */}
+      {isMobileSidebarOpen && (
+        <div className="fixed inset-0 bg-black/40 z-40 md:hidden" onClick={() => setMobileSidebarOpen(false)}></div>
+      )}
+      {/* Sidebar */}
+      <div className="md:block">
+        {Sidebar}
+      </div>
       <main className="flex-1 flex flex-col overflow-hidden">
-        <header className="h-16 bg-white border-b border-slate-200 px-6 flex items-center justify-between shrink-0 z-10">
+        <header className="h-16 bg-white border-b border-slate-200 px-2 md:px-6 flex items-center justify-between shrink-0 z-10">
           <div className="flex items-center gap-4">
-            <button onClick={() => setSidebarOpen(!isSidebarOpen)} className="p-2 hover:bg-slate-100 rounded-lg text-slate-500">
+            {/* Hamburger for mobile */}
+            <button onClick={() => setMobileSidebarOpen(v => !v)} className="p-2 hover:bg-slate-100 rounded-lg text-slate-500 md:hidden">
+              <Menu size={20} />
+            </button>
+            {/* Sidebar toggle for desktop */}
+            <button onClick={() => setSidebarOpen(!isSidebarOpen)} className="p-2 hover:bg-slate-100 rounded-lg text-slate-500 hidden md:inline-flex">
               <Menu size={20} />
             </button>
             <div className="hidden md:flex items-center bg-slate-100 px-3 py-1.5 rounded-lg w-64">
@@ -208,8 +228,7 @@ const App: React.FC = () => {
             </div>
           </div>
         </header>
-
-        <div className="flex-1 overflow-y-auto p-6 no-scrollbar">
+        <div className="flex-1 overflow-y-auto p-2 md:p-6 no-scrollbar">
           {activeTab === 'dashboard' && <Dashboard products={products} transactions={transactions} opnameSessions={opnameSessions} />}
           {activeTab === 'pos' && <POS products={products} onTransactionComplete={handleAddTransaction} />}
           {activeTab === 'purchasing' && <Purchasing products={products} purchases={purchases} onAddPurchase={handleAddPurchase} />}

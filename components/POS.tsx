@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { 
   Search, 
@@ -28,6 +27,8 @@ const POS: React.FC<POSProps> = ({ products, onTransactionComplete }) => {
   const [discountPercent, setDiscountPercent] = useState(0);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(PaymentMethod.CASH);
   const [isProcessing, setIsProcessing] = useState(false);
+  // State untuk drawer cart di mobile
+  const [isCartOpen, setIsCartOpen] = useState(false);
 
   // Derived state
   const filteredProducts = useMemo(() => 
@@ -104,9 +105,12 @@ const POS: React.FC<POSProps> = ({ products, onTransactionComplete }) => {
   };
 
   return (
-    <div className="h-full flex flex-col md:flex-row gap-6">
+    <div className="h-full flex flex-col-reverse md:flex-row gap-4 md:gap-6 p-2 md:p-0 min-h-0">
       {/* Product Selection Area */}
-      <div className="flex-1 flex flex-col gap-4 overflow-hidden">
+      <div
+        className="flex-1 flex flex-col gap-4 min-h-0 bg-slate-50 rounded-2xl md:bg-transparent"
+        style={{ minHeight: '40vh', maxHeight: '60vh' }}
+      >
         <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-3">
           <div className="flex-1 flex items-center bg-slate-100 px-4 py-2.5 rounded-xl">
             <Search size={20} className="text-slate-400" />
@@ -123,7 +127,7 @@ const POS: React.FC<POSProps> = ({ products, onTransactionComplete }) => {
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 pb-4 no-scrollbar">
+        <div className="flex-1 overflow-y-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 pb-4 no-scrollbar min-h-0">
           {filteredProducts.map(product => (
             <button
               key={product.id}
@@ -148,9 +152,8 @@ const POS: React.FC<POSProps> = ({ products, onTransactionComplete }) => {
           ))}
         </div>
       </div>
-
-      {/* Cart & Checkout Area */}
-      <div className="w-full md:w-[400px] flex flex-col gap-4">
+      {/* Cart & Checkout Area (hidden on mobile, shown on desktop) */}
+      <div className="hidden md:flex w-full md:w-[400px] flex-col gap-4 md:mt-0 bg-white rounded-2xl md:bg-transparent overflow-auto min-h-0 max-h-[60vh] md:max-h-none">
         <div className="flex-1 bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col overflow-hidden">
           <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
             <h3 className="font-bold text-slate-900 flex items-center gap-2">
@@ -266,6 +269,91 @@ const POS: React.FC<POSProps> = ({ products, onTransactionComplete }) => {
           </button>
         </div>
       </div>
+      {/* Floating Cart Button (mobile only) */}
+      {cart.length > 0 && (
+        <div className="fixed bottom-0 left-0 right-0 z-40 px-4 pb-4 md:hidden pointer-events-none">
+          <div className="pointer-events-auto">
+            <button 
+              onClick={() => setIsCartOpen(true)}
+              className="w-full bg-slate-900 text-white p-4 rounded-3xl flex items-center justify-between shadow-2xl animate-in slide-in-from-bottom-8 duration-300"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center relative">
+                  <ShoppingCart size={20} />
+                  <span className="absolute -top-2 -right-2 bg-blue-500 text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center border-2 border-slate-900">
+                    {cart.reduce((a, b) => a + b.quantity, 0)}
+                  </span>
+                </div>
+                <div className="text-left">
+                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Total Pesanan</p>
+                  <p className="font-black text-sm">Rp {total.toLocaleString()}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 font-bold text-sm">
+                Lihat Keranjang
+              </div>
+            </button>
+          </div>
+        </div>
+      )}
+      {/* Cart Drawer (mobile only) */}
+      {isCartOpen && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-900/60 backdrop-blur-sm p-0 animate-in fade-in duration-300 md:hidden">
+          <div className="w-full max-w-md bg-white rounded-t-3xl p-6 pb-10 shadow-2xl animate-in slide-in-from-bottom-full duration-500 mx-auto">
+            <div className="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mb-6 cursor-pointer" onClick={() => setIsCartOpen(false)}></div>
+            <h3 className="text-2xl font-black text-slate-900 mb-4 flex items-center gap-2">
+              <ShoppingCart className="text-blue-600" /> Keranjang
+            </h3>
+            <div className="max-h-[300px] overflow-y-auto pr-2 no-scrollbar mb-8">
+              {cart.map(item => (
+                <div key={item.productId} className="flex items-center justify-between py-4 border-b border-slate-50">
+                  <div>
+                    <h5 className="font-bold text-slate-900">{item.name}</h5>
+                    <p className="text-xs text-slate-400 font-medium">Rp {item.price.toLocaleString()} x {item.quantity}</p>
+                  </div>
+                  <div className="flex items-center gap-4 bg-slate-50 p-1.5 rounded-2xl">
+                    <button onClick={() => updateQuantity(item.productId, -1)} className="w-9 h-9 bg-white rounded-xl shadow-sm flex items-center justify-center text-slate-600 focus:ring-2 focus:ring-blue-300 active:bg-blue-50 transition" aria-label="Kurangi"><Minus size={16}/></button>
+                    <span className="font-black text-slate-900 min-w-[24px] text-center select-none">{item.quantity}</span>
+                    <button onClick={() => updateQuantity(item.productId, 1)} className="w-9 h-9 bg-white rounded-xl shadow-sm flex items-center justify-center text-slate-600 focus:ring-2 focus:ring-blue-300 active:bg-blue-50 transition" aria-label="Tambah"><Plus size={16}/></button>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="space-y-3 mb-6">
+              <div className="flex justify-between text-sm text-slate-500">
+                <span>Subtotal</span>
+                <span className="font-bold text-slate-900">Rp {subtotal.toLocaleString()}</span>
+              </div>
+              <div className="flex justify-between text-sm text-slate-500">
+                <span>PPN (11%)</span>
+                <span className="font-bold text-slate-900">Rp {taxAmount.toLocaleString()}</span>
+              </div>
+              <div className="flex justify-between items-center pt-3 border-t border-slate-100">
+                <span className="font-black text-slate-900">Total Pembayaran</span>
+                <span className="text-2xl font-black text-blue-600">Rp {total.toLocaleString()}</span>
+              </div>
+            </div>
+            <button 
+              disabled={cart.length === 0 || isProcessing}
+              onClick={handleCheckout}
+              className={`w-full py-5 rounded-3xl font-black text-lg shadow-xl shadow-blue-200 flex items-center justify-center gap-3 active:scale-95 transition-all ${cart.length === 0 || isProcessing ? 'bg-slate-300 text-white cursor-not-allowed' : 'bg-blue-600 text-white'}`}
+            >
+              {isProcessing ? (
+                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              ) : (
+                <>
+                  <CreditCard size={20} />
+                  Proses Pembayaran
+                </>
+              )}
+            </button>
+            <button 
+              onClick={() => setIsCartOpen(false)}
+              className="w-full mt-4 py-3 text-slate-400 font-bold text-sm hover:text-slate-600"
+            >Kembali Pilih Menu</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

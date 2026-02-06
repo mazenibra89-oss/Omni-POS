@@ -27,8 +27,18 @@ const QRCodeComponent = (props: any) => {
 
 // Default produk dummy jika tidak ada props
 const defaultProducts: Product[] = [
-  { id: '1', sku: 'SKU-1', name: 'Nasi Goreng', category: 'Makanan', unit: 'Porsi', sellPrice: 20000, stock: 99, minStock: 5, buyPrice: 15000 },
-  { id: '2', sku: 'SKU-2', name: 'Es Teh', category: 'Minuman', unit: 'Gelas', sellPrice: 5000, stock: 99, minStock: 10, buyPrice: 3000 },
+  { id: '1', sku: 'SKU-1', name: 'Nasi Goreng', category: 'Food', unit: 'Porsi', sellPrice: 20000, stock: 99, minStock: 5, buyPrice: 15000 },
+  { id: '2', sku: 'SKU-2', name: 'Es Teh', category: 'Drink', unit: 'Gelas', sellPrice: 5000, stock: 99, minStock: 10, buyPrice: 3000 },
+  { id: '3', sku: 'SKU-3', name: 'Mie Goreng', category: 'Food', unit: 'Porsi', sellPrice: 18000, stock: 80, minStock: 5, buyPrice: 13000 },
+  { id: '4', sku: 'SKU-4', name: 'Ayam Bakar', category: 'Food', unit: 'Porsi', sellPrice: 25000, stock: 60, minStock: 5, buyPrice: 20000 },
+  { id: '5', sku: 'SKU-5', name: 'Sate Ayam', category: 'Food', unit: 'Porsi', sellPrice: 22000, stock: 70, minStock: 5, buyPrice: 17000 },
+  { id: '6', sku: 'SKU-6', name: 'Jus Alpukat', category: 'Drink', unit: 'Gelas', sellPrice: 12000, stock: 50, minStock: 10, buyPrice: 8000 },
+  { id: '7', sku: 'SKU-7', name: 'Kopi Hitam', category: 'Drink', unit: 'Cangkir', sellPrice: 8000, stock: 100, minStock: 10, buyPrice: 4000 },
+  { id: '8', sku: 'SKU-8', name: 'Teh Tarik', category: 'Drink', unit: 'Gelas', sellPrice: 9000, stock: 90, minStock: 10, buyPrice: 5000 },
+  { id: '9', sku: 'SKU-9', name: 'Pisang Goreng', category: 'Snack', unit: 'Porsi', sellPrice: 10000, stock: 40, minStock: 5, buyPrice: 7000 },
+  { id: '10', sku: 'SKU-10', name: 'French Fries', category: 'Snack', unit: 'Porsi', sellPrice: 12000, stock: 35, minStock: 5, buyPrice: 8000 },
+  { id: '11', sku: 'SKU-11', name: 'Brownies', category: 'Dessert', unit: 'Potong', sellPrice: 15000, stock: 30, minStock: 5, buyPrice: 10000 },
+  { id: '12', sku: 'SKU-12', name: 'Ice Cream', category: 'Dessert', unit: 'Cup', sellPrice: 10000, stock: 25, minStock: 5, buyPrice: 6000 },
 ];
 
 interface CustomerViewProps {
@@ -179,10 +189,10 @@ const CustomerView: React.FC<Partial<CustomerViewProps>> = (props) => {
   }
 
   return (
-    <div className="flex-1 flex flex-col max-md mx-auto w-full bg-slate-50 shadow-2xl overflow-hidden relative">
+    <div className="flex-1 flex flex-col w-full bg-slate-50 shadow-2xl overflow-hidden relative min-h-screen max-w-4xl mx-auto md:rounded-3xl md:my-6">
       {/* Header */}
-      <header className="p-6 pb-4 bg-white">
-        <div className="flex justify-between items-center mb-6">
+      <header className="p-2 pb-1 bg-white sticky top-0 z-10 shadow-sm md:rounded-t-3xl md:p-6 md:pb-4">
+        <div className="flex justify-between items-center mb-2 gap-2 md:mb-6">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-blue-100">
               <Utensils size={24} />
@@ -198,21 +208,19 @@ const CustomerView: React.FC<Partial<CustomerViewProps>> = (props) => {
             <UserCircle size={24} />
           </button>
         </div>
-
         {/* Search */}
-        <div className="relative mb-6">
-          <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+        <div className="relative mb-1 md:mb-4">
+          <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <input 
             type="text" 
             placeholder="Cari makanan favoritmu..."
-            className="w-full pl-12 pr-4 py-4 bg-slate-100 border-none rounded-2xl text-sm focus:ring-2 focus:ring-blue-500"
+            className="w-full pl-10 pr-3 py-2 md:py-4 bg-slate-100 border-none rounded-2xl text-sm focus:ring-2 focus:ring-blue-500"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-
         {/* Categories */}
-        <div className="flex gap-3 overflow-x-auto no-scrollbar -mx-6 px-6">
+        <div className="flex gap-1 md:gap-3 overflow-x-auto no-scrollbar -mx-2 px-2 pb-1 md:-mx-6 md:px-6 md:pb-0">
           {['All', ...CATEGORIES].map(cat => (
             <button
               key={cat}
@@ -229,8 +237,36 @@ const CustomerView: React.FC<Partial<CustomerViewProps>> = (props) => {
         </div>
       </header>
 
+      {/* Floating Cart Button */}
+      {cartCount > 0 && (
+        <div className="fixed bottom-0 left-0 right-0 z-40 px-4 pb-4 md:left-6 md:right-6 md:bottom-6 pointer-events-none">
+          <div className="pointer-events-auto">
+            <button 
+              onClick={() => setIsCartOpen(true)}
+              className="w-full bg-slate-900 text-white p-4 rounded-3xl flex items-center justify-between shadow-2xl animate-in slide-in-from-bottom-8 duration-300"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center relative">
+                  <ShoppingCart size={20} />
+                  <span className="absolute -top-2 -right-2 bg-blue-500 text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center border-2 border-slate-900">
+                    {cartCount}
+                  </span>
+                </div>
+                <div className="text-left">
+                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Total Pesanan</p>
+                  <p className="font-black text-sm">Rp {total.toLocaleString()}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 font-bold text-sm">
+                Lihat Keranjang <ChevronLeft size={16} className="rotate-180" />
+              </div>
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Menu Grid */}
-      <div className="flex-1 overflow-y-auto p-6 space-y-4 no-scrollbar pb-32">
+      <div className="flex-1 min-h-0 overflow-y-auto p-6 space-y-4 no-scrollbar pb-32 md:pb-40">
         <h3 className="font-black text-slate-900 text-lg">Pilihan Menu</h3>
         <div className="grid grid-cols-1 gap-4">
           {filteredProducts.map(product => {
@@ -291,38 +327,12 @@ const CustomerView: React.FC<Partial<CustomerViewProps>> = (props) => {
         </div>
       </div>
 
-      {/* Floating Cart Button */}
-      {cartCount > 0 && (
-        <div className="absolute bottom-6 left-6 right-6 z-20">
-          <button 
-            onClick={() => setIsCartOpen(true)}
-            className="w-full bg-slate-900 text-white p-4 rounded-3xl flex items-center justify-between shadow-2xl animate-in slide-in-from-bottom-8 duration-300"
-          >
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center relative">
-                <ShoppingCart size={20} />
-                <span className="absolute -top-2 -right-2 bg-blue-500 text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center border-2 border-slate-900">
-                  {cartCount}
-                </span>
-              </div>
-              <div className="text-left">
-                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Total Pesanan</p>
-                <p className="font-black text-sm">Rp {total.toLocaleString()}</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2 font-bold text-sm">
-              Lihat Keranjang <ChevronLeft size={16} className="rotate-180" />
-            </div>
-          </button>
-        </div>
-      )}
-
       {/* Cart Drawer (Simulated) */}
       {isCartOpen && (
         <div className="fixed inset-0 z-40 flex items-end justify-center bg-slate-900/60 backdrop-blur-sm p-0 animate-in fade-in duration-300">
-          <div className="w-full max-w-md bg-white rounded-t-[40px] p-8 pb-10 shadow-2xl animate-in slide-in-from-bottom-full duration-500">
-            <div className="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mb-8 cursor-pointer" onClick={() => setIsCartOpen(false)}></div>
-            <h3 className="text-2xl font-black text-slate-900 mb-6 flex items-center gap-2">
+          <div className="w-full max-w-md bg-white rounded-t-3xl p-6 pb-10 shadow-2xl animate-in slide-in-from-bottom-full duration-500 mx-auto md:rounded-3xl md:my-8">
+            <div className="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mb-6 cursor-pointer" onClick={() => setIsCartOpen(false)}></div>
+            <h3 className="text-2xl font-black text-slate-900 mb-4 flex items-center gap-2">
               <ShoppingCart className="text-blue-600" /> Pesanan Kamu
             </h3>
             
@@ -342,7 +352,7 @@ const CustomerView: React.FC<Partial<CustomerViewProps>> = (props) => {
               ))}
             </div>
 
-            <div className="space-y-3 mb-8">
+            <div className="space-y-3 mb-6">
                <div className="flex justify-between text-sm text-slate-500">
                 <span>Subtotal</span>
                 <span className="font-bold text-slate-900">Rp {subtotal.toLocaleString()}</span>
@@ -488,7 +498,7 @@ const CustomerView: React.FC<Partial<CustomerViewProps>> = (props) => {
       {/* Customer Info & Payment Modal */}
       {showCustomerForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300">
-          <div className="w-full max-w-xs bg-white rounded-3xl p-8 shadow-2xl animate-in zoom-in duration-300">
+          <div className="w-full max-w-xs bg-white rounded-2xl p-8 shadow-2xl animate-in zoom-in duration-300 mx-2 md:max-w-md md:rounded-3xl md:p-10">
             <h3 className="text-xl font-black text-slate-900 mb-6">Data Pemesan</h3>
             <div className="mb-4">
               <label className="block text-slate-700 text-sm font-bold mb-2">Nama</label>
