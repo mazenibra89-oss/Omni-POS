@@ -204,9 +204,21 @@ const CustomerView: React.FC<Partial<CustomerViewProps>> = (props) => {
               </p>
             </div>
           </div>
-          <button className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-600">
-            <UserCircle size={24} />
-          </button>
+          <div className="flex items-center gap-2">
+            <button className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-600">
+              <UserCircle size={24} />
+            </button>
+            <button
+              className="px-3 py-2 rounded-xl bg-red-50 text-red-600 font-bold text-xs hover:bg-red-100 border border-red-200 transition"
+              onClick={() => {
+                localStorage.removeItem('accessToken');
+                window.location.reload();
+              }}
+              title="Logout"
+            >
+              Logout
+            </button>
+          </div>
         </div>
         {/* Search */}
         <div className="relative mb-1 md:mb-4">
